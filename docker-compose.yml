@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: reservationdb
+      POSTGRES_USER: reservation
+      POSTGRES_PASSWORD: localdev123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reservation -d reservationdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: src/ReservationSystem.Api/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      # Cift alt cizgi .NET'in ic ice yapilandirma sozdizimi; tek alt cizgi calismaz.
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=reservationdb;Username=reservation;Password=localdev123"
+      ConnectionStrings__Redis: "redis:6379"
+      Cors__Origins__0: "http://localhost:5173"
+      Frontend__BaseUrl: "http://localhost:5173"
+      # Gizli degerler .env dosyasindan gelir (.gitignore'da). Ornek: .env.example
+      Jwt__Key: "${JWT_KEY:?Jwt anahtari gerekli - .env dosyasina JWT_KEY yazin}"
+      Iyzico__ApiKey: "${IYZICO_API_KEY:-}"
+      Iyzico__SecretKey: "${IYZICO_SECRET_KEY:-}"
+      Payment__CallbackUrl: "${PAYMENT_CALLBACK_URL:-}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

@@ -34,6 +34,10 @@ public static class DependencyInjection
             ICommandHandler<CompletePaymentCommand, PaymentCompletionResult>,
             CompletePaymentHandler>();
 
+        services.AddScoped<
+            ICommandHandler<ReconcilePendingPaymentsCommand, int>,
+            ReconcilePendingPaymentsHandler>();
+
         services.AddSingleton(TimeProvider.System);
 
         return services;

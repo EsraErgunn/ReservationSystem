@@ -1,13 +1,17 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 using ReservationSystem.Application.Abstractions;
 using ReservationSystem.Domain.Enums;
 
-namespace ReservationSystem.Infrastructure.Identity;
+namespace ReservationSystem.Api.Services;
 
 /// <summary>
-/// NFR-08: yetkilendirme istemciye bırakılmaz — kimlik her istekte JWT
-/// claim'lerinden sunucuda okunur.
+/// NFR-08: yetkilendirme istemciye bırakılmaz — kimlik her istekte JWT claim'lerinden
+/// sunucuda okunur.
+/// <para>
+/// Neden Api'de, Infrastructure'da değil: <c>HttpContext</c> bir web kavramı.
+/// Infrastructure'a konsaydı, HTTP isteği olmayan arka plan servisleri de bu sınıfa
+/// bağımlı hale gelme riski taşırdı (api-katmani.md §4).
+/// </para>
 /// </summary>
 public class CurrentUser(IHttpContextAccessor accessor) : ICurrentUser
 {
