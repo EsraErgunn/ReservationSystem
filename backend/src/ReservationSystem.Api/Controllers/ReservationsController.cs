@@ -12,7 +12,9 @@ namespace ReservationSystem.Api.Controllers;
 [Authorize]                        // BR-14
 public class ReservationsController(
     ICommandHandler<CreateReservationCommand, ReservationDto> create,
-    ICommandHandler<CancelReservationCommand, bool> cancel)
+    ICommandHandler<CancelReservationCommand, bool> cancel,
+    IQueryHandler<GetMyReservationsQuery, IReadOnlyList<ReservationSummaryDto>> getMine,
+    IQueryHandler<GetReservationByIdQuery, ReservationDetailDto> getById)
     : ControllerBase
 {
     [HttpPost]
@@ -25,11 +27,22 @@ public class ReservationsController(
         var result = await create.HandleAsync(
             new CreateReservationCommand(request.EventId, request.EventSeatIds), ct);
 
-        // Dokümanda CreatedAtAction(nameof(GetById), ...) yazıyor; GetById action'ı
-        // (ve karşılığı olan query) henüz yok, var olmayan action'a çözümlenemeyeceği
-        // için Location başlığı elle kuruluyor.
-        return Created($"/api/reservations/{result.Id}", result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
+
+    /// <summary>FR-10: kullanıcının kendi rezervasyonları.</summary>
+    [HttpGet]
+    [ProducesResponseType<IReadOnlyList<ReservationSummaryDto>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMine(CancellationToken ct)
+        => Ok(await getMine.HandleAsync(new GetMyReservationsQuery(), ct));
+
+    /// <summary>FR-10: tek rezervasyonun detayı. Yetki kontrolü handler'da (BR-15).</summary>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType<ReservationDetailDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+        => Ok(await getById.HandleAsync(new GetReservationByIdQuery(id), ct));
 
     [HttpPost("{id:guid}/cancel")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
