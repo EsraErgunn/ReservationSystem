@@ -11,11 +11,18 @@
     Application yalnızca Domain'i bilir. EF Core / Npgsql / Iyzipay / StackExchange.Redis
     buraya GİRMEZ — bu paketlerin tipleri Infrastructure'da kalır.
   -->
+  <!-- LoginHandler.DummyHash'in gerçek bir PBKDF2 çıktısı olduğu Infrastructure
+       testinde doğrulanıyor: bozuksa Verify erken döner ve zamanlama koruması çöker. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="ReservationSystem.Infrastructure.Tests" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ReservationSystem.Domain\ReservationSystem.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />

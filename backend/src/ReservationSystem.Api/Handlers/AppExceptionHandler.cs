@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using ReservationSystem.Application.Common;
@@ -48,6 +49,12 @@ public class AppExceptionHandler(ILogger<AppExceptionHandler> logger) : IExcepti
         UnauthorizedAppException e     => (401, e.Code, e.Message),
         PaymentAppException e          => (422, e.Code, e.Message),
         DomainException e              => (400, e.Code, e.Message),
+
+        // auth.md §8: RegisterValidator handler içinde çalışıyor (bağlanan model
+        // RegisterRequest, doğrulanan tip RegisterCommand — otomatik doğrulama
+        // devreye girmez). Fırlattığı istisna burada 400'e çevriliyor.
+        ValidationException e           => (400, "validation_error",
+            string.Join(" ", e.Errors.Select(f => f.ErrorMessage))),
 
         // Bilinmeyen hata — iç detay SIZDIRILMAZ (NFR-08). Bağlantı dizesi, dosya
         // yolu gibi bilgiler ex.Message içinde olabilir; onlar yalnızca log'a gider.

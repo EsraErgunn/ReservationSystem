@@ -1,4 +1,6 @@
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using ReservationSystem.Application.Auth;
 using ReservationSystem.Application.Common;
 using ReservationSystem.Application.Payments;
 using ReservationSystem.Application.Reservations;
@@ -37,6 +39,16 @@ public static class DependencyInjection
         services.AddScoped<
             ICommandHandler<ReconcilePendingPaymentsCommand, int>,
             ReconcilePendingPaymentsHandler>();
+
+        services.AddScoped<
+            ICommandHandler<RegisterCommand, AuthResult>,
+            RegisterHandler>();
+
+        services.AddScoped<
+            ICommandHandler<LoginCommand, AuthResult>,
+            LoginHandler>();
+
+        services.AddScoped<IValidator<RegisterCommand>, RegisterValidator>();
 
         services.AddSingleton(TimeProvider.System);
 
