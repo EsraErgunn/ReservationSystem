@@ -15,5 +15,13 @@ public interface IReservationRepository
     Task<IReadOnlyList<Reservation>> GetExpiredAsync(
         DateTime utcNow, int batchSize, CancellationToken ct);
 
+    /// <summary>
+    /// api-katmani.md §8: callback'i hiç ulaşmamış olabilecek ödemelerin sağlayıcı
+    /// token'ları. Yalnızca token'ı olan (yani sağlayıcıya gerçekten gitmiş) ve
+    /// <paramref name="olderThanUtc"/> tarihinden önce oluşturulmuş Pending kayıtlar.
+    /// </summary>
+    Task<IReadOnlyList<string>> GetPendingPaymentTokensAsync(
+        DateTime olderThanUtc, int batchSize, CancellationToken ct);
+
     void Add(Reservation reservation);
 }

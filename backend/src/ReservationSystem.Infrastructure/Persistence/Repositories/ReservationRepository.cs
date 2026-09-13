@@ -34,5 +34,21 @@ public class ReservationRepository(AppDbContext context) : IReservationRepositor
             .Take(batchSize)
             .ToListAsync(ct);
 
+    /// <summary>
+    /// api-katmani.md §8. Sıralama <c>CreatedAt</c> ile: en uzun süredir bekleyen
+    /// (yani en riskli) kayıt önce ele alınır.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> GetPendingPaymentTokensAsync(
+        DateTime olderThanUtc, int batchSize, CancellationToken ct) =>
+        await context.Payments
+            .AsNoTracking()
+            .Where(p => p.Status == PaymentStatus.Pending
+                        && p.ProviderToken != null
+                        && p.CreatedAt < olderThanUtc)
+            .OrderBy(p => p.CreatedAt)
+            .Take(batchSize)
+            .Select(p => p.ProviderToken!)
+            .ToListAsync(ct);
+
     public void Add(Reservation reservation) => context.Reservations.Add(reservation);
 }
