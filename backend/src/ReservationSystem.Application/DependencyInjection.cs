@@ -50,6 +50,16 @@ public static class DependencyInjection
 
         services.AddScoped<IValidator<RegisterCommand>, RegisterValidator>();
 
+        // FR-10 okuma tarafi: handler'lar Application'da, IReservationQueries
+        // implementasyonu Infrastructure'da.
+        services.AddScoped<
+            IQueryHandler<GetMyReservationsQuery, IReadOnlyList<ReservationSummaryDto>>,
+            GetMyReservationsHandler>();
+
+        services.AddScoped<
+            IQueryHandler<GetReservationByIdQuery, ReservationDetailDto>,
+            GetReservationByIdHandler>();
+
         services.AddSingleton(TimeProvider.System);
 
         return services;

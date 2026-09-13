@@ -34,6 +34,7 @@ public static class DependencyInjection
 
         // Okuma tarafı: domain'den geçmeyen projeksiyon sorgusu
         services.AddScoped<IQueryHandler<GetSeatMapQuery, SeatMapDto>, GetSeatMapQueryHandler>();
+        services.AddScoped<IReservationQueries, ReservationQueries>();
 
         // auth.md §5–6. JwtOptions burada Configure ediliyor; Api'nin AddJwtBearer
         // yapılandırması da aynı kaydı okur.
