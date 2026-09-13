@@ -1,8 +1,13 @@
-namespace ReservationSystem.Api.Options;
+namespace ReservationSystem.Infrastructure.Identity;
 
 /// <summary>
 /// NFR-05: <see cref="Key"/> kaynak kodda değil, user-secrets / ortam değişkeni
 /// üzerinden gelir. <c>appsettings.json</c>'daki karşılığı boş bırakılmıştır.
+/// <para>
+/// Api'de değil Infrastructure'da: hem <c>JwtTokenService</c> (üretim) hem Api'nin
+/// <c>AddJwtBearer</c> yapılandırması (doğrulama) okuyor, Infrastructure ise Api'yi
+/// göremez. Tek <c>Configure</c> çağrısı <c>AddInfrastructure</c> içinde.
+/// </para>
 /// </summary>
 public class JwtOptions
 {

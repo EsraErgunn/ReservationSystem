@@ -10,6 +10,7 @@ using ReservationSystem.Api.Services;
 using ReservationSystem.Application;
 using ReservationSystem.Application.Abstractions;
 using ReservationSystem.Infrastructure;
+using ReservationSystem.Infrastructure.Identity;
 using ReservationSystem.Infrastructure.RealTime;
 using Serilog;
 
@@ -108,6 +109,17 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    // auth.md §7: giriş ucu kaba kuvvetin birincil hedefi. Partition IP bazlı —
+    // kullanıcı henüz kimlik doğrulamamış olduğu için claim yok.
+    options.AddPolicy("auth", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
                 Window = TimeSpan.FromMinutes(1)
             }));
 

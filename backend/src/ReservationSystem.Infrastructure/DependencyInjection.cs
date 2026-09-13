@@ -6,6 +6,7 @@ using ReservationSystem.Application.Common;
 using ReservationSystem.Application.Events;
 using ReservationSystem.Application.Payments;
 using ReservationSystem.Infrastructure.BackgroundJobs;
+using ReservationSystem.Infrastructure.Identity;
 using ReservationSystem.Infrastructure.Payments;
 using ReservationSystem.Infrastructure.Persistence;
 using ReservationSystem.Infrastructure.Persistence.Queries;
@@ -33,6 +34,12 @@ public static class DependencyInjection
 
         // Okuma tarafı: domain'den geçmeyen projeksiyon sorgusu
         services.AddScoped<IQueryHandler<GetSeatMapQuery, SeatMapDto>, GetSeatMapQueryHandler>();
+
+        // auth.md §5–6. JwtOptions burada Configure ediliyor; Api'nin AddJwtBearer
+        // yapılandırması da aynı kaydı okur.
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<ITokenService, JwtTokenService>();
 
         // ICurrentUser implementasyonu Api katmanında: HttpContext bir web kavramı,
         // Infrastructure'ın arka plan servisleri onu görmemeli (api-katmani.md §4).
