@@ -621,7 +621,6 @@ uydurulması gereken yerler:
 | Dokümandaki | Koddaki | Neden |
 |---|---|---|
 | `ICommandHandler<CancelReservationCommand, Unit>` | `…, bool` | Application'da `Unit` tipi yok; `CancelReservationCommand : ICommand<bool>` |
-| `CreatedAtAction(nameof(GetById), …)` | `Created($"/api/reservations/{id}", …)` | `GetById` action'ı ve karşılık gelen query henüz yok; `CreatedAtAction` var olmayan action'a çözümlenemez ve çalışma zamanında `InvalidOperationException` fırlatır |
 | `CurrentUser` Api'de | Api'ye **taşındı** | `Infrastructure/Identity/CurrentUser.cs` silindi, DI kaydı Api'ye alındı (§4'teki gerekçe) |
 | `ReconcilePendingPaymentsCommand` handler'ı bağımsız | `CompletePaymentHandler`'ı çağırıyor | Aynı mantığın iki kopyası yerine tek kaynak; `CompletePaymentHandler` zaten idempotent (BR-12) |
 
