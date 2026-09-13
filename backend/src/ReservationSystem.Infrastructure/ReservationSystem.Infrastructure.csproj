@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
+    Dış dünyanın tamamı burada: EF Core, Npgsql, Iyzipay, SignalR.
+    Application ve Domain bu paketlerin hiçbirini görmez.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\ReservationSystem.Application\ReservationSystem.Application.csproj" />
+  </ItemGroup>
+
+  <!-- SignalR, IHttpContextAccessor ve BackgroundService için -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" Version="9.0.*" />
+    <!-- Npgsql 9.0.4 EF Core 9.0.1 getiriyor; Design 9.0.9 ile hizalanması için açık referans -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Iyzipay" Version="2.1.80" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
+    Domain katmanı hiçbir NuGet paketine ve hiçbir projeye referans vermez.
+    PackageReference / ProjectReference eklemeyin — Clean Architecture'ın
+    bağımlılık kuralı burada zorlanır.
+  -->
+
+</Project>
