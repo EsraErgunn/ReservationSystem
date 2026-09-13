@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Api ile ayni kimlik: AppDbContextFactory tasarim zamaninda ayni secret
+         deposundan ConnectionStrings:Postgres okusun diye. -->
+    <UserSecretsId>reservation-system-api</UserSecretsId>
   </PropertyGroup>
 
   <!--

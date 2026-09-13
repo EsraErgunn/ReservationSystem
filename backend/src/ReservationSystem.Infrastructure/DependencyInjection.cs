@@ -20,10 +20,17 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services, IConfiguration configuration)
     {
+        // Tek kaynak: user-secrets (Development) veya ConnectionStrings__Postgres
+        // ortam degiskeni (Docker/CI). Sabit fallback yok - yanlis veritabanina
+        // sessizce baglanmaktansa acilista patlamak yeglenir.
+        var postgres = configuration.GetConnectionString("Postgres");
+        if (string.IsNullOrWhiteSpace(postgres))
+            throw new InvalidOperationException(
+                "ConnectionStrings:Postgres yapilandirilmamis. user-secrets veya " +
+                "ConnectionStrings__Postgres ortam degiskeni ile verin.");
+
         services.AddDbContext<AppDbContext>(opt =>
-            opt.UseNpgsql(
-                configuration.GetConnectionString("Postgres"),
-                npgsql => npgsql.EnableRetryOnFailure())
+            opt.UseNpgsql(postgres, npgsql => npgsql.EnableRetryOnFailure())
                .UseSnakeCaseNamingConvention());
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
