@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using ReservationSystem.Api.Options;
 using ReservationSystem.Application.Common;
 using ReservationSystem.Application.Payments;
+using ReservationSystem.Infrastructure.Payments;
 
 namespace ReservationSystem.Api.Controllers;
 
@@ -42,8 +43,33 @@ public class PaymentsController(
     [IgnoreAntiforgeryToken]
     [Consumes("application/x-www-form-urlencoded")]
     [ApiExplorerSettings(IgnoreApi = true)]
-    public async Task<IActionResult> Callback(
-        [FromForm] string? token, CancellationToken ct)
+    public Task<IActionResult> Callback([FromForm] string? token, CancellationToken ct)
+        => CompleteAndRedirectAsync(token, ct);
+
+    /// <summary>
+    /// Yalnızca sahte ödeme sağlayıcısı etkinken (iyzico anahtarı olmadan yerel
+    /// geliştirme) vardır: test ödeme ekranındaki düğmenin sonucu sağlayıcıya
+    /// yazılır, ardından akış gerçek callback ile AYNI yoldan devam eder — sunucu
+    /// taraflı doğrulama (BR-10) atlanmaz.
+    /// </summary>
+    [HttpPost("fake-checkout")]
+    [AllowAnonymous]
+    [IgnoreAntiforgeryToken]
+    [Consumes("application/x-www-form-urlencoded")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public async Task<IActionResult> FakeCheckout(
+        [FromForm] string? token, [FromForm] string? outcome, CancellationToken ct)
+    {
+        var fake = HttpContext.RequestServices.GetService<FakePaymentGateway>();
+        if (fake is null) return NotFound();
+
+        if (!string.IsNullOrWhiteSpace(token))
+            fake.TrySetOutcome(token, outcome == "success");
+
+        return await CompleteAndRedirectAsync(token, ct);
+    }
+
+    private async Task<IActionResult> CompleteAndRedirectAsync(string? token, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(token))
             return Redirect($"{frontend.Value.BaseUrl}/odeme/sonuc?durum=gecersiz");

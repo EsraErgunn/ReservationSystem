@@ -18,7 +18,7 @@ public class Event : Entity
     private Event() { }   // EF Core için
 
     public Event(Guid venueId, string title, DateTime eventDate,
-                 DateTime salesStartAt, DateTime salesEndAt)
+                 DateTime salesStartAt, DateTime salesEndAt, string? description = null)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new DomainException("event.invalid_title", "Etkinlik başlığı boş olamaz.");
@@ -32,10 +32,33 @@ public class Event : Entity
                 "Satış, etkinlik tarihinden sonra bitemez.");
 
         VenueId = venueId;
-        Title = title;
+        Title = title.Trim();
+        Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
         EventDate = eventDate;
         SalesStartAt = salesStartAt;
         SalesEndAt = salesEndAt;
+    }
+
+    /// <summary>
+    /// FR-12: etkinliğin satılabilir koltuklarını üretir. Mekânın her koltuğu için
+    /// tek bir <see cref="EventSeat"/> — fiyat sıra bazında değişebilir.
+    /// </summary>
+    public IReadOnlyList<EventSeat> CreateSeats(
+        IReadOnlyList<Seat> venueSeats, Func<Seat, decimal> priceFor)
+    {
+        if (venueSeats.Count == 0)
+            throw new DomainException("event.no_seats", "Mekânda tanımlı koltuk yok.");
+
+        if (venueSeats.Any(s => s.VenueId != VenueId))
+            throw new DomainException("event.seat_venue_mismatch", "Koltuklar etkinliğin mekânına ait değil.");
+
+        if (_eventSeats.Count > 0)
+            throw new DomainException("event.seats_already_created", "Etkinlik koltukları zaten oluşturuldu.");
+
+        foreach (var seat in venueSeats)
+            _eventSeats.Add(new EventSeat(Id, seat.Id, priceFor(seat)));
+
+        return _eventSeats.AsReadOnly();
     }
 
     /// <summary>BR-17</summary>
