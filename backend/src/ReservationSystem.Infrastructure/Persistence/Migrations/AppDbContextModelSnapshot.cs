@@ -25,7 +25,6 @@ namespace ReservationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReservationSystem.Domain.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -82,7 +81,6 @@ namespace ReservationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReservationSystem.Domain.Entities.EventSeat", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -135,7 +133,6 @@ namespace ReservationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReservationSystem.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -212,7 +209,6 @@ namespace ReservationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReservationSystem.Domain.Entities.Reservation", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -278,7 +274,6 @@ namespace ReservationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReservationSystem.Domain.Entities.ReservationItem", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -321,7 +316,6 @@ namespace ReservationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReservationSystem.Domain.Entities.Seat", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -355,7 +349,6 @@ namespace ReservationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReservationSystem.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -399,7 +392,6 @@ namespace ReservationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("ReservationSystem.Domain.Entities.Venue", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 

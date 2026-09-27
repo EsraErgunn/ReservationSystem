@@ -23,18 +23,20 @@ public class ReservationQueries(AppDbContext context) : IReservationQueries
         await context.Reservations
             .AsNoTracking()
             .Where(r => r.UserId == userId)
-            .OrderByDescending(r => r.CreatedAt)
-            .Join(context.Events, r => r.EventId, e => e.Id, (r, e) => new ReservationSummaryDto(
-                r.Id,
-                r.EventId,
-                e.Title,
-                e.EventDate,
-                r.Status.ToString(),
+            .Join(context.Events, r => r.EventId, e => e.Id, (r, e) => new { r, e })
+            // Sıralama join'den sonra: join'den önceki ORDER BY'ın korunması garanti değil.
+            .OrderByDescending(x => x.r.CreatedAt)
+            .Select(x => new ReservationSummaryDto(
+                x.r.Id,
+                x.r.EventId,
+                x.e.Title,
+                x.e.EventDate,
+                x.r.Status.ToString(),
                 // Yalnızca aktif satırlar: iptal edilen koltuk sayıya girmemeli.
-                r.Items.Count(i => i.IsActive),
-                r.TotalAmount,
-                r.Status == ReservationStatus.Held ? (DateTime?)r.HeldUntil : null,
-                r.CreatedAt))
+                x.r.Items.Count(i => i.IsActive),
+                x.r.TotalAmount,
+                x.r.Status == ReservationStatus.Held ? (DateTime?)x.r.HeldUntil : null,
+                x.r.CreatedAt))
             .ToListAsync(ct);
 
     public async Task<ReservationDetailWithOwnerDto?> GetDetailAsync(
@@ -72,13 +74,15 @@ public class ReservationQueries(AppDbContext context) : IReservationQueries
             .AsNoTracking()
             .Where(i => i.ReservationId == id && i.IsActive)
             .Join(context.EventSeats, i => i.EventSeatId, es => es.Id, (i, es) => new { i, es })
-            .Join(context.Seats, x => x.es.SeatId, s => s.Id, (x, s) => new ReservationSeatDto(
+            .Join(context.Seats, x => x.es.SeatId, s => s.Id, (x, s) => new { x.i, x.es, s })
+            // Sıralama projeksiyondan önce (bkz. GetSeatMapQueryHandler)
+            .OrderBy(x => x.s.RowLabel)
+            .ThenBy(x => x.s.SeatNumber)
+            .Select(x => new ReservationSeatDto(
                 x.es.Id,
-                s.RowLabel,
-                s.SeatNumber,
+                x.s.RowLabel,
+                x.s.SeatNumber,
                 x.i.PriceAtReservation))
-            .OrderBy(s => s.RowLabel)
-            .ThenBy(s => s.SeatNumber)
             .ToListAsync(ct);
 
         return new ReservationDetailWithOwnerDto(

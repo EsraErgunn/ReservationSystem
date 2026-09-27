@@ -2,9 +2,11 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using ReservationSystem.Application.Auth;
 using ReservationSystem.Application.Common;
+using ReservationSystem.Application.Events;
 using ReservationSystem.Application.Payments;
 using ReservationSystem.Application.Reservations;
 using ReservationSystem.Application.Reservations.Dtos;
+using ReservationSystem.Application.Venues;
 
 namespace ReservationSystem.Application;
 
@@ -59,6 +61,18 @@ public static class DependencyInjection
         services.AddScoped<
             IQueryHandler<GetReservationByIdQuery, ReservationDetailDto>,
             GetReservationByIdHandler>();
+
+        // FR-12: admin tanımlama akışları
+        services.AddScoped<
+            ICommandHandler<CreateVenueCommand, VenueDto>,
+            CreateVenueHandler>();
+
+        services.AddScoped<
+            ICommandHandler<CreateEventCommand, EventCreatedDto>,
+            CreateEventHandler>();
+
+        services.AddScoped<IValidator<CreateVenueCommand>, CreateVenueValidator>();
+        services.AddScoped<IValidator<CreateEventCommand>, CreateEventValidator>();
 
         services.AddSingleton(TimeProvider.System);
 

@@ -1,6 +1,7 @@
 using ReservationSystem.Application.Abstractions;
 using ReservationSystem.Application.Common;
 using ReservationSystem.Application.Reservations.Dtos;
+using ReservationSystem.Domain.Common;
 using ReservationSystem.Domain.Entities;
 
 namespace ReservationSystem.Application.Reservations;
@@ -37,7 +38,18 @@ public class CreateReservationHandler(
             throw new NotFoundAppException("event_seat", "Bazı koltuklar bulunamadı.");
 
         // Tüm kurallar burada değil — Domain'de. Application sadece çağırır.
-        var reservation = Reservation.Create(userId, @event, eventSeats, utcNow);
+        Reservation reservation;
+        try
+        {
+            reservation = Reservation.Create(userId, @event, eventSeats, utcNow);
+        }
+        catch (DomainException ex) when (ex.Code == "seat.not_available")
+        {
+            // BR-06: koltuk zaten okunduğu anda doluysa da (sıralı istek) yarış
+            // durumundaki (eşzamanlı istek) ile aynı 409 + aynı mesaj dönmeli —
+            // istemci iki durumu ayırt etmek zorunda kalmasın.
+            throw SeatTaken();
+        }
 
         reservations.Add(reservation);
 

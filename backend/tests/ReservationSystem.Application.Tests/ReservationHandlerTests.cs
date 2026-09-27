@@ -70,6 +70,20 @@ public class CreateReservationHandlerTests
     // ---- BR-06: sessiz başarısızlık yok ------------------------------------
 
     [Fact]
+    public async Task WhenSeatAlreadyHeld_ThrowsSeatTakenWithoutSaving()
+    {
+        var s = new TestScenario(seatCount: 1);
+        s.EventSeats[0].Hold();   // başka bir kullanıcı önceden almış
+
+        var ex = await Assert.ThrowsAsync<ConflictAppException>(() =>
+            Build(s).HandleAsync(CommandFor(s), default));
+
+        Assert.Equal("seat.taken", ex.Code);
+        s.Reservations.DidNotReceiveWithAnyArgs().Add(default!);
+        await s.Uow.DidNotReceiveWithAnyArgs().SaveChangesAsync(default);
+    }
+
+    [Fact]
     public async Task WhenConcurrencyConflict_ThrowsSeatTaken()
     {
         var s = new TestScenario();

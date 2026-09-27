@@ -37,18 +37,32 @@ services:
       # Cift alt cizgi .NET'in ic ice yapilandirma sozdizimi; tek alt cizgi calismaz.
       ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=reservationdb;Username=reservation;Password=localdev123"
       ConnectionStrings__Redis: "redis:6379"
-      Cors__Origins__0: "http://localhost:5173"
-      Frontend__BaseUrl: "http://localhost:5173"
+      Cors__Origins__0: "http://localhost:${FRONTEND_PORT:-5173}"
+      # Odeme callback'inden sonra tarayicinin yonlendirilecegi adres
+      Frontend__BaseUrl: "http://localhost:${FRONTEND_PORT:-5173}"
+      # Acilista migration + ornek veri (admin/demo kullanici, 2 mekan, 3 etkinlik)
+      Database__MigrateOnStartup: "true"
+      Seed__Enabled: "true"
       # Gizli degerler .env dosyasindan gelir (.gitignore'da). Ornek: .env.example
       Jwt__Key: "${JWT_KEY:?Jwt anahtari gerekli - .env dosyasina JWT_KEY yazin}"
       Iyzico__ApiKey: "${IYZICO_API_KEY:-}"
       Iyzico__SecretKey: "${IYZICO_SECRET_KEY:-}"
+      # Bos birakilirsa ve iyzico anahtari yoksa sahte (test) odeme saglayicisi kullanilir
+      Payment__Provider: "${PAYMENT_PROVIDER:-}"
       Payment__CallbackUrl: "${PAYMENT_CALLBACK_URL:-}"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - api
 
 volumes:
   postgres-data:

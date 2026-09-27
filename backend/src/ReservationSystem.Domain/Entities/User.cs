@@ -21,4 +21,10 @@ public class User : Entity
         Role = UserRole.User;
         CreatedAt = utcNow;
     }
+
+    /// <summary>
+    /// BR-16: admin rolü kayıt ucundan verilemez; yalnızca seed / yönetim aracı
+    /// üzerinden atanır.
+    /// </summary>
+    public void PromoteToAdmin() => Role = UserRole.Admin;
 }

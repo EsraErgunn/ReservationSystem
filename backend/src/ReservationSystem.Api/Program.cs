@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ReservationSystem.Api;
 using ReservationSystem.Api.Handlers;
 using ReservationSystem.Api.Options;
 using ReservationSystem.Api.Services;
@@ -11,7 +12,9 @@ using ReservationSystem.Application;
 using ReservationSystem.Application.Abstractions;
 using ReservationSystem.Infrastructure;
 using ReservationSystem.Infrastructure.Identity;
+using ReservationSystem.Infrastructure.Persistence.Seed;
 using ReservationSystem.Infrastructure.RealTime;
+using ReservationSystem.Domain.Enums;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +30,10 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ---------- HTTP ----------
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    // Enum'lar istemciye sayı değil ad olarak gider ("Held", "Sold")
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(
+        new System.Text.Json.Serialization.JsonStringEnumConverter()));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddExceptionHandler<AppExceptionHandler>();
@@ -83,7 +89,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy(AuthPolicies.Admin, policy => policy.RequireRole(nameof(UserRole.Admin))));
 
 // ---------- CORS ----------
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
@@ -145,6 +152,10 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
+// Migration + örnek veri (Database:MigrateOnStartup, Seed:Enabled). Varsayılan
+// kapalı; Development ve Docker Compose yapılandırmasında açılıyor.
+await DatabaseInitializer.InitializeAsync(app.Services);
+
 // ---------- Pipeline — SIRA ÖNEMLİ ----------
 // UseExceptionHandler en üstte: altındaki her şeyin hatasını yakalayabilmesi için.
 app.UseExceptionHandler();
@@ -156,7 +167,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// NFR-07: üretimde HTTPS. Geliştirmede Vite proxy'si ve Docker içindeki nginx
+// düz HTTP ile konuştuğu için yönlendirme kapalı.
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 
 // UseCors, UseAuthentication'dan ÖNCE: aksi halde tarayıcının preflight (OPTIONS)
 // isteği kimlik doğrulamaya takılır ve yanıltıcı bir CORS hatası alınır.

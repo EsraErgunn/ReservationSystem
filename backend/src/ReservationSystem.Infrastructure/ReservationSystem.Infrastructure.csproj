@@ -15,6 +15,10 @@
     Application ve Domain bu paketlerin hiçbirini görmez.
   -->
   <ItemGroup>
+    <InternalsVisibleTo Include="ReservationSystem.Infrastructure.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ReservationSystem.Application\ReservationSystem.Application.csproj" />
   </ItemGroup>
 
@@ -28,6 +32,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="9.0.9" />
     <!-- Npgsql 9.0.4 EF Core 9.0.1 getiriyor; Design 9.0.9 ile hizalanması için açık referans -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.9" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
       <PrivateAssets>all</PrivateAssets>
