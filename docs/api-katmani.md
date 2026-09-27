@@ -513,9 +513,21 @@ services.AddHostedService<PendingPaymentReconciliationService>();
 Gerçek değerler `user-secrets`'ta:
 
 ```bash
+dotnet user-secrets set "ConnectionStrings:Postgres" "Host=localhost;Port=5433;Database=reservationdb;Username=reservation;Password=localdev123"
 dotnet user-secrets set "Jwt:Key" "<en az 32 karakter rastgele dizge>"
 dotnet user-secrets set "Payment:CallbackUrl" "https://<ngrok-adresin>/api/payments/callback"
 ```
+
+> **Port 5433.** `docker-compose.yml` postgres'i `5433:5432` ile yayınlıyor — konteyner
+> içi 5432, host tarafı 5433. Host'tan (`dotnet run`, `dotnet ef`) bağlanırken 5433
+> kullanılır; yalnızca api konteyneri `Host=postgres;Port=5432` ile bağlanır.
+
+> **Bağlantı dizesi tek kaynakta.** `appsettings.Development.json` içinde
+> `ConnectionStrings:Postgres` **yok**; değer user-secrets'tan (veya Docker'da
+> `ConnectionStrings__Postgres` ortam değişkeninden) gelir. `dotnet ef`
+> launchSettings.json'ı uygulamadığı için ortamı Production sayar ve
+> `appsettings.Development.json`'ı hiç yüklemez — bu yüzden tasarım zamanında
+> okunan tek yer user-secrets'tır (`AppDbContextFactory`).
 
 > **JWT anahtarı** en az 256 bit (32 karakter) olmalı, yoksa `HmacSha256` çalışmaz. Üretmek için: `openssl rand -base64 48` veya PowerShell'de `[Convert]::ToBase64String((1..48 | % { Get-Random -Max 256 }))`.
 
@@ -621,7 +633,6 @@ uydurulması gereken yerler:
 | Dokümandaki | Koddaki | Neden |
 |---|---|---|
 | `ICommandHandler<CancelReservationCommand, Unit>` | `…, bool` | Application'da `Unit` tipi yok; `CancelReservationCommand : ICommand<bool>` |
-| `CreatedAtAction(nameof(GetById), …)` | `Created($"/api/reservations/{id}", …)` | `GetById` action'ı ve karşılık gelen query henüz yok; `CreatedAtAction` var olmayan action'a çözümlenemez ve çalışma zamanında `InvalidOperationException` fırlatır |
 | `CurrentUser` Api'de | Api'ye **taşındı** | `Infrastructure/Identity/CurrentUser.cs` silindi, DI kaydı Api'ye alındı (§4'teki gerekçe) |
 | `ReconcilePendingPaymentsCommand` handler'ı bağımsız | `CompletePaymentHandler`'ı çağırıyor | Aynı mantığın iki kopyası yerine tek kaynak; `CompletePaymentHandler` zaten idempotent (BR-12) |
 
