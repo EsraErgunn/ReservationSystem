@@ -39,6 +39,18 @@ public class ModelConfigurationTests : IDisposable
         Assert.Equal(8, _model.GetEntityTypes().Count());
     }
 
+    /// <summary>
+    /// Id'ler Domain'de üretiliyor. "Eklenirken üretilir" işaretli kalsaydı, takip
+    /// edilen aggregate'e sonradan eklenen çocuk (Reservation.StartPayment → Payment)
+    /// INSERT yerine UPDATE edilir ve concurrency hatasıyla düşerdi.
+    /// </summary>
+    [Fact]
+    public void AllGuidKeys_AreClientGenerated()
+    {
+        Assert.All(_model.GetEntityTypes(), entity =>
+            Assert.Equal(ValueGenerated.Never, entity.FindPrimaryKey()!.Properties.Single().ValueGenerated));
+    }
+
     [Theory]
     [InlineData(typeof(User), "users")]
     [InlineData(typeof(Venue), "venues")]

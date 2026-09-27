@@ -17,6 +17,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // Kimlikler Domain'de üretiliyor (Entity.Id = Guid.CreateVersion7()). EF Core
+        // varsayılan olarak Guid anahtarı "eklenirken üretilir" sayar; bu durumda
+        // takip edilen bir aggregate'e sonradan eklenen çocuk (ör. Reservation.StartPayment
+        // ile gelen Payment) dolu Id'si yüzünden MEVCUT kayıt sanılır, INSERT yerine
+        // UPDATE üretilir ve 0 satır etkilendiği için concurrency hatası alınır.
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var id = entityType.FindProperty("Id");
+            if (id?.ClrType == typeof(Guid) && id.IsPrimaryKey())
+                id.ValueGenerated = Microsoft.EntityFrameworkCore.Metadata.ValueGenerated.Never;
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 

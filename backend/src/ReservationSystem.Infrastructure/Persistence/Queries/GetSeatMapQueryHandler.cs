@@ -23,14 +23,17 @@ public class GetSeatMapQueryHandler(AppDbContext context)
         var seats = await context.EventSeats
             .AsNoTracking()
             .Where(es => es.EventId == query.EventId)
-            .Join(context.Seats, es => es.SeatId, s => s.Id, (es, s) => new SeatMapItemDto(
-                es.Id,
-                s.RowLabel,
-                s.SeatNumber,
-                es.Price,
-                es.Status.ToString()))
-            .OrderBy(s => s.RowLabel)
-            .ThenBy(s => s.SeatNumber)
+            .Join(context.Seats, es => es.SeatId, s => s.Id, (es, s) => new { es, s })
+            // Sıralama projeksiyondan ÖNCE: EF Core, record constructor'ına yapılmış
+            // projeksiyonun üyeleri üzerinden ORDER BY üretemez.
+            .OrderBy(x => x.s.RowLabel)
+            .ThenBy(x => x.s.SeatNumber)
+            .Select(x => new SeatMapItemDto(
+                x.es.Id,
+                x.s.RowLabel,
+                x.s.SeatNumber,
+                x.es.Price,
+                x.es.Status.ToString()))
             .ToListAsync(ct);
 
         return new SeatMapDto(@event.Id, @event.Title, seats);
